@@ -12,4 +12,4 @@ if __name__ == "__main__":
         serve(app, host="0.0.0.0", port=port)
     except ImportError:
         print("Waitress not installed. Falling back to Flask dev server.")
-        app.run(host="0.0.0.0", port=port, debug=False)
+        app.run(host="0.0.0.0", port=port, debug=True)
