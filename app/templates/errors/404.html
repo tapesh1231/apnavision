@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found (404) | ApnaVision{% endblock %}
+
+{% block content %}
+<div class="min-h-[60vh] flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8">
+    <div class="text-center">
+        <p class="text-sm font-semibold text-volt-600 uppercase tracking-wide">404 error</p>
+        <h1 class="mt-2 text-4xl font-extrabold text-gray-900 tracking-tight sm:text-5xl">Page not found.</h1>
+        <p class="mt-2 text-base text-gray-500">Sorry, we couldn't find the page you're looking for.</p>
+        <div class="mt-6 text-center">
+            <a href="/" class="text-base font-medium text-volt-600 hover:text-volt-500">
+                Go back home <span aria-hidden="true">&rarr;</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

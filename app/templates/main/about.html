@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}Innovation | ApnaVision{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 flex-grow py-20 relative overflow-hidden">
+    <!-- Decorative background -->
+    <div class="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-volt-200 rounded-full mix-blend-multiply filter blur-3xl opacity-70"></div>
+    <div class="absolute bottom-0 left-0 -mb-20 -ml-20 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-70"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="text-center max-w-3xl mx-auto mb-20 animate-fade-in-up">
+            <h2 class="text-volt-600 font-bold tracking-widest uppercase text-sm mb-3">Our Mission</h2>
+            <h1 class="text-5xl font-extrabold text-gray-900 tracking-tight mb-6">Pioneering Urban Mobility</h1>
+            <p class="text-xl text-gray-600 font-light leading-relaxed">
+                ApnaVision was founded in 2026 with a single, uncompromising goal: to build the most advanced, reliable, and beautifully engineered electric scooters on the planet.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+            <div class="animate-fade-in-up delay-100">
+                <div class="aspect-w-4 aspect-h-3 rounded-2xl overflow-hidden shadow-2xl">
+                    <img src="https://images.unsplash.com/photo-1541882352824-7f13b190f848?auto=format&fit=crop&q=80&w=1000" alt="Scooter Engineering" class="object-cover hover:scale-105 transition-transform duration-700">
+                </div>
+            </div>
+            <div class="space-y-8 animate-fade-in-up delay-200">
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-3 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-volt-100 text-volt-600 flex items-center justify-center">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                        </div>
+                        Obsessive Engineering
+                    </h3>
+                    <p class="text-gray-600 leading-relaxed font-light">Every component, from the forged aluminum chassis to the proprietary motor controllers, is designed in-house. We don't use off-the-shelf parts; we invent them.</p>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-3 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-volt-100 text-volt-600 flex items-center justify-center">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
+                        </div>
+                        Sustainable Future
+                    </h3>
+                    <p class="text-gray-600 leading-relaxed font-light">Our mission extends beyond transportation. We are actively reducing the carbon footprint of modern cities by providing a wildly fun alternative to cars.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Team Section -->
+        <div class="mt-32 pb-20">
+            <div class="text-center mb-16">
+                <h2 class="text-volt-600 font-bold tracking-widest uppercase text-sm mb-3">Our Leadership</h2>
+                <h3 class="text-4xl font-extrabold text-gray-900 tracking-tight">Meet the Minds Behind ApnaVision</h3>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                <!-- CEO -->
+                <div onclick="openTeamModal('ceo')" class="bg-white rounded-3xl p-8 text-center cursor-pointer hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 border border-gray-100 group">
+                    <div class="relative w-32 h-32 mx-auto mb-6">
+                        <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&q=80" alt="CEO" class="w-full h-full object-cover rounded-full shadow-lg group-hover:ring-4 ring-volt-500 transition-all duration-300">
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-900">Marcus Vance</h4>
+                    <p class="text-volt-600 font-medium mb-3">Chief Executive Officer</p>
+                    <p class="text-sm text-gray-500 line-clamp-2">Former aerospace engineer who founded ApnaVision to bring aviation-grade tech to urban mobility.</p>
+                </div>
+                
+                <!-- Marketing Head -->
+                <div onclick="openTeamModal('marketing')" class="bg-white rounded-3xl p-8 text-center cursor-pointer hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 border border-gray-100 group">
+                    <div class="relative w-32 h-32 mx-auto mb-6">
+                        <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&q=80" alt="Marketing Head" class="w-full h-full object-cover rounded-full shadow-lg group-hover:ring-4 ring-volt-500 transition-all duration-300">
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-900">Julian Hayes</h4>
+                    <p class="text-volt-600 font-medium mb-3">Head of Marketing</p>
+                    <p class="text-sm text-gray-500 line-clamp-2">Mastermind behind our global brand presence and community-driven initiatives.</p>
+                </div>
+                
+                <!-- Sales Head -->
+                <div onclick="openTeamModal('sales')" class="bg-white rounded-3xl p-8 text-center cursor-pointer hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 border border-gray-100 group">
+                    <div class="relative w-32 h-32 mx-auto mb-6">
+                        <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80" alt="Sales Head" class="w-full h-full object-cover rounded-full shadow-lg group-hover:ring-4 ring-volt-500 transition-all duration-300">
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-900">Elena Rostova</h4>
+                    <p class="text-volt-600 font-medium mb-3">Head of Sales</p>
+                    <p class="text-sm text-gray-500 line-clamp-2">Driving enterprise partnerships and expanding our global retail footprint.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Team Modal -->
+<div id="teamModal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-75 backdrop-blur-sm transition-opacity" onclick="closeTeamModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full border border-gray-100">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 class="text-lg font-black text-gray-900" id="teamModalTitle">Team Structure</h3>
+                <button onclick="closeTeamModal()" class="text-gray-400 hover:text-gray-600 transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            <div class="p-8" id="teamModalContent">
+                <!-- Content injected via JS -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const teamData = {
+    ceo: {
+        title: "Executive Board",
+        html: `
+            <div class="flex flex-col items-center">
+                <div class="bg-gray-900 rounded-2xl p-6 w-full max-w-sm text-center border border-gray-800 mb-6 shadow-xl relative overflow-hidden">
+                    <div class="absolute inset-0 bg-volt-500 opacity-10"></div>
+                    <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&q=80" class="relative w-20 h-20 rounded-full mx-auto mb-3 object-cover ring-2 ring-volt-500">
+                    <h4 class="relative font-bold text-lg text-white">Marcus Vance</h4>
+                    <p class="relative text-volt-400 text-sm font-bold uppercase tracking-wider">CEO & Founder</p>
+                </div>
+                <div class="w-px h-8 bg-gray-300"></div>
+                <div class="w-full max-w-md border-t-2 border-gray-300 relative mt-0 mb-6">
+                    <div class="absolute -top-4 left-0 w-px h-4 bg-gray-300"></div>
+                    <div class="absolute -top-4 right-0 w-px h-4 bg-gray-300"></div>
+                </div>
+                <div class="flex w-full justify-between max-w-md gap-4">
+                    <div class="bg-gray-50 rounded-xl p-4 w-1/2 text-center border border-gray-200 shadow-sm">
+                        <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&q=80" class="w-12 h-12 rounded-full mx-auto mb-2 object-cover">
+                        <p class="font-bold text-gray-900">Sarah Chen</p>
+                        <p class="text-xs text-gray-500 font-medium">Chief Technology Officer</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-4 w-1/2 text-center border border-gray-200 shadow-sm">
+                        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80" class="w-12 h-12 rounded-full mx-auto mb-2 object-cover">
+                        <p class="font-bold text-gray-900">David O'Neil</p>
+                        <p class="text-xs text-gray-500 font-medium">Chief Financial Officer</p>
+                    </div>
+                </div>
+            </div>
+        `
+    },
+    marketing: {
+        title: "Marketing Department",
+        html: `
+            <div class="flex flex-col items-center">
+                <div class="bg-blue-900 rounded-2xl p-6 w-full max-w-sm text-center border border-blue-800 mb-6 shadow-xl relative overflow-hidden">
+                    <div class="absolute inset-0 bg-blue-500 opacity-10"></div>
+                    <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&q=80" class="relative w-20 h-20 rounded-full mx-auto mb-3 object-cover ring-2 ring-blue-500">
+                    <h4 class="relative font-bold text-lg text-white">Julian Hayes</h4>
+                    <p class="relative text-blue-400 text-sm font-bold uppercase tracking-wider">Head of Marketing</p>
+                </div>
+                <div class="w-px h-8 bg-gray-300"></div>
+                <div class="w-full border-t-2 border-gray-300 relative mt-0 mb-6">
+                    <div class="absolute -top-4 left-0 w-px h-4 bg-gray-300"></div>
+                    <div class="absolute -top-4 left-1/2 w-px h-4 bg-gray-300 transform -translate-x-1/2"></div>
+                    <div class="absolute -top-4 right-0 w-px h-4 bg-gray-300"></div>
+                </div>
+                <div class="grid grid-cols-3 w-full gap-4">
+                    <div class="bg-gray-50 rounded-xl p-3 text-center border border-gray-200 shadow-sm">
+                        <p class="font-bold text-sm text-gray-900">Emma Stone</p>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wider mt-1 font-bold">Social Media</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-3 text-center border border-gray-200 shadow-sm">
+                        <p class="font-bold text-sm text-gray-900">Raj Patel</p>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wider mt-1 font-bold">Content Lead</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-3 text-center border border-gray-200 shadow-sm">
+                        <p class="font-bold text-sm text-gray-900">Mia Wong</p>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wider mt-1 font-bold">Events</p>
+                    </div>
+                </div>
+            </div>
+        `
+    },
+    sales: {
+        title: "Sales Department",
+        html: `
+            <div class="flex flex-col items-center">
+                <div class="bg-emerald-900 rounded-2xl p-6 w-full max-w-sm text-center border border-emerald-800 mb-6 shadow-xl relative overflow-hidden">
+                    <div class="absolute inset-0 bg-emerald-500 opacity-10"></div>
+                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80" class="relative w-20 h-20 rounded-full mx-auto mb-3 object-cover ring-2 ring-emerald-500">
+                    <h4 class="relative font-bold text-lg text-white">Elena Rostova</h4>
+                    <p class="relative text-emerald-400 text-sm font-bold uppercase tracking-wider">Head of Sales</p>
+                </div>
+                <div class="w-px h-8 bg-gray-300"></div>
+                <div class="w-full max-w-sm border-t-2 border-gray-300 relative mt-0 mb-6">
+                    <div class="absolute -top-4 left-0 w-px h-4 bg-gray-300"></div>
+                    <div class="absolute -top-4 right-0 w-px h-4 bg-gray-300"></div>
+                </div>
+                <div class="grid grid-cols-2 w-full max-w-sm gap-4">
+                    <div class="bg-gray-50 rounded-xl p-4 text-center border border-gray-200 shadow-sm">
+                        <p class="font-bold text-gray-900">John Davis</p>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wider mt-1 font-bold">B2B Director</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-4 text-center border border-gray-200 shadow-sm">
+                        <p class="font-bold text-gray-900">Lisa Kim</p>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wider mt-1 font-bold">Retail Partners</p>
+                    </div>
+                </div>
+            </div>
+        `
+    }
+};
+
+function openTeamModal(teamKey) {
+    const data = teamData[teamKey];
+    if(data) {
+        document.getElementById('teamModalTitle').innerText = data.title;
+        document.getElementById('teamModalContent').innerHTML = data.html;
+        document.getElementById('teamModal').classList.remove('hidden');
+    }
+}
+
+function closeTeamModal() {
+    document.getElementById('teamModal').classList.add('hidden');
+}
+</script>
+{% endblock %}

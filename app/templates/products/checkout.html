@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout | ApnaVision{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 flex-grow py-16">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-10 text-center animate-fade-in-up">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">Secure Checkout</h1>
+            <p class="mt-2 text-gray-500 font-light">You are one step away from owning the {{ scooter.name }}.</p>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 overflow-hidden animate-fade-in-up delay-100">
+            <div class="px-8 py-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-volt-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
+                    Payment Details
+                </h3>
+            </div>
+            
+            <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-12">
+                <!-- Order Summary -->
+                <div class="order-2 md:order-1">
+                    <h4 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-6">Order Summary</h4>
+                    
+                    <div class="flex gap-4 mb-6 pb-6 border-b border-gray-100">
+                        <div class="w-24 h-24 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
+                            {% if scooter.image_url %}
+                                <img src="{{ scooter.image_url }}" class="w-full h-full object-cover">
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h5 class="font-bold text-gray-900 text-lg">{{ scooter.name }}</h5>
+                            <p class="text-sm text-gray-500 mt-1">High-performance electric scooter</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 text-sm text-gray-600 font-medium">
+                        <div class="flex justify-between items-center">
+                            <span>Subtotal</span>
+                            <span class="text-gray-900">₹{{ "%.2f"|format(scooter.price) }}</span>
+                        </div>
+                        {% if scooter.active_offer %}
+                        <div class="flex justify-between items-center text-green-600">
+                            <span>Discount ({{ scooter.active_offer.name }})</span>
+                            <span>-₹{{ "%.2f"|format(scooter.price - scooter.final_price) }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="flex justify-between items-center">
+                            <span>Shipping</span>
+                            <span class="text-green-600">Free</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>Taxes</span>
+                            <span class="text-gray-900">₹0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-4 mt-4 border-t border-gray-100">
+                            <span class="text-lg font-bold text-gray-900">Total</span>
+                            <span class="text-2xl font-black text-volt-600">₹{{ "%.2f"|format(scooter.final_price) }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Action -->
+                <div class="order-1 md:order-2 flex flex-col justify-center">
+                    <h4 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-6">Complete Purchase</h4>
+                    
+                    <div class="bg-gray-50/50 rounded-2xl p-8 border border-gray-100 text-center">
+                        <svg class="w-16 h-16 mx-auto text-volt-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        <h5 class="text-lg font-bold text-gray-900 mb-2">Secure Checkout</h5>
+                        <p class="text-sm text-gray-500 mb-8">Click below to open the secure payment gateway.</p>
+                        
+                        <button id="rzp-button1" class="w-full bg-black border border-transparent rounded-xl shadow-md py-4 px-4 text-lg font-bold text-white hover:bg-volt-500 hover:text-black focus:outline-none focus:ring-4 focus:ring-volt-500/50 transition-all duration-300 hover:-translate-y-1">
+                            Pay ₹{{ "%.2f"|format(scooter.final_price) }}
+                        </button>
+                    </div>
+                    
+                    <p class="text-center text-xs text-gray-400 flex items-center justify-center gap-1.5 mt-6">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
+                        Payments are securely processed by Razorpay
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Razorpay Checkout -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    {% if order_id %}
+    var options = {
+        "key": "{{ razorpay_key_id }}",
+        "amount": "{{ (scooter.final_price * 100)|int }}", 
+        "currency": "INR",
+        "name": "ApnaVision",
+        "description": "Purchase of {{ scooter.name }}",
+        "order_id": "{{ order_id }}",
+        "handler": function (response){
+            // Create hidden form and submit
+            var form = document.createElement("form");
+            form.method = "POST";
+            form.action = "/products/checkout/{{ scooter.id }}";
+            
+            var csrfInput = document.createElement("input");
+            csrfInput.type = "hidden";
+            csrfInput.name = "csrf_token";
+            csrfInput.value = "{{ csrf_token() }}";
+            form.appendChild(csrfInput);
+            
+            var paymentIdInput = document.createElement("input");
+            paymentIdInput.type = "hidden";
+            paymentIdInput.name = "razorpay_payment_id";
+            paymentIdInput.value = response.razorpay_payment_id;
+            form.appendChild(paymentIdInput);
+            
+            var orderIdInput = document.createElement("input");
+            orderIdInput.type = "hidden";
+            orderIdInput.name = "razorpay_order_id";
+            orderIdInput.value = response.razorpay_order_id;
+            form.appendChild(orderIdInput);
+            
+            var signatureInput = document.createElement("input");
+            signatureInput.type = "hidden";
+            signatureInput.name = "razorpay_signature";
+            signatureInput.value = response.razorpay_signature;
+            form.appendChild(signatureInput);
+            
+            document.body.appendChild(form);
+            form.submit();
+        },
+        "theme": {
+            "color": "#22c55e"
+        }
+    };
+    var rzp1 = new Razorpay(options);
+    rzp1.on('payment.failed', function (response){
+            alert("Payment Failed. Reason: " + response.error.description);
+    });
+    document.getElementById('rzp-button1').onclick = function(e){
+        rzp1.open();
+        e.preventDefault();
+    }
+    {% else %}
+    document.getElementById('rzp-button1').disabled = true;
+    document.getElementById('rzp-button1').innerText = "Razorpay Configuration Error";
+    document.getElementById('rzp-button1').classList.add("cursor-not-allowed", "opacity-50");
+    {% endif %}
+</script>
+{% endblock %}

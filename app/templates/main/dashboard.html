@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | ApnaVision{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 flex-grow py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="mb-12 animate-fade-in-up">
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">Welcome back, {{ current_user.username }}</h1>
+            <p class="mt-2 text-gray-500 font-light text-lg">Manage your profile and track your orders.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            <!-- Profile Overview (Left Column) -->
+            <div class="lg:col-span-1 animate-fade-in-up delay-100">
+                <div class="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-3xl border border-gray-100 overflow-hidden sticky top-28">
+                    <div class="px-8 py-8 border-b border-gray-100 bg-gray-50/50">
+                        <div class="w-20 h-20 bg-gradient-to-br from-volt-400 to-volt-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-volt-500/30 text-white font-bold text-3xl">
+                            {{ current_user.username[0]|upper }}
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900">{{ current_user.username }}</h3>
+                        <p class="text-gray-500 font-medium">{{ current_user.email }}</p>
+                    </div>
+                    <div class="px-8 py-6">
+                        <div class="flex justify-between items-center py-3 border-b border-gray-50">
+                            <span class="text-sm text-gray-500 font-medium uppercase tracking-wider">Member Since</span>
+                            <span class="text-sm font-bold text-gray-900">{{ current_user.created_at.strftime('%Y') }}</span>
+                        </div>
+                        <div class="flex justify-between items-center py-3">
+                            <span class="text-sm text-gray-500 font-medium uppercase tracking-wider">Total Orders</span>
+                            <span class="text-sm font-bold text-gray-900">{{ orders|length }}</span>
+                        </div>
+                        
+                        <div class="mt-8 pt-6 border-t border-gray-100">
+                            <a href="/products" class="w-full bg-black border border-transparent rounded-xl py-3 px-4 flex items-center justify-center text-sm font-bold text-white hover:bg-volt-500 hover:text-black transition-all duration-300">
+                                Browse Scooters
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order History (Right Column) -->
+            <div class="lg:col-span-2 animate-fade-in-up delay-200">
+                <div class="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-3xl border border-gray-100 overflow-hidden">
+                    <div class="px-8 py-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                        <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-volt-500" fill="currentColor" viewBox="0 0 20 20"><path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"></path><path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
+                            Order History
+                        </h3>
+                    </div>
+                    
+                    <div class="p-0">
+                        {% if orders %}
+                            <ul role="list" class="divide-y divide-gray-100">
+                                {% for order in orders %}
+                                <li class="p-8 hover:bg-gray-50 transition-colors duration-200 group">
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                                        <div class="flex items-center gap-6">
+                                            <div class="w-24 h-24 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0 border border-gray-200">
+                                                {% if order.scooter.image_url %}
+                                                    <img src="{{ order.scooter.image_url }}" alt="{{ order.scooter.name }}" class="w-full h-full object-cover">
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <h4 class="text-lg font-bold text-gray-900 group-hover:text-volt-600 transition-colors">
+                                                    {{ order.scooter.name }}
+                                                </h4>
+                                                <p class="text-sm text-gray-500 mt-1 font-medium">Order #{{ order.id }}</p>
+                                                <p class="text-xs text-gray-400 mt-2 flex items-center gap-1">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                                    {{ order.created_at.strftime('%b %d, %Y') }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="flex flex-col sm:items-end justify-center gap-3">
+                                            <span class="text-xl font-black text-gray-900">₹{{ "%.2f"|format(order.total_price) }}</span>
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider
+                                                {% if order.status == 'Paid' %}bg-yellow-100 text-yellow-800
+                                                {% elif order.status == 'Processing' %}bg-blue-100 text-blue-800
+                                                {% elif order.status == 'Shipped' %}bg-purple-100 text-purple-800
+                                                {% elif order.status == 'Delivered' %}bg-emerald-100 text-emerald-800
+                                                {% elif order.status == 'Rejected & Refunded' %}bg-red-100 text-red-800
+                                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                                <span class="w-1.5 h-1.5 rounded-full mr-2
+                                                    {% if order.status == 'Paid' %}bg-yellow-500
+                                                    {% elif order.status == 'Processing' %}bg-blue-500
+                                                    {% elif order.status == 'Shipped' %}bg-purple-500
+                                                    {% elif order.status == 'Delivered' %}bg-emerald-500
+                                                    {% elif order.status == 'Rejected & Refunded' %}bg-red-500
+                                                    {% else %}bg-gray-500{% endif %}"></span>
+                                                {{ order.status }}
+                                            </span>
+                                            {% if order.refund_status != 'None' %}
+                                                <span class="text-xs font-bold text-gray-500">Refund: <span class="{% if order.refund_status == 'Failed' %}text-red-500{% elif order.refund_status == 'Processed' %}text-green-500{% endif %}">{{ order.refund_status }}</span></span>
+                                            {% endif %}
+                                            
+                                            {% if order.complaints %}
+                                                <div class="mt-3 space-y-2 w-full min-w-[250px] max-w-sm">
+                                                {% for complaint in order.complaints %}
+                                                    <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 w-full text-left">
+                                                        <div class="flex justify-between items-start mb-1 gap-4">
+                                                            <span class="text-xs font-bold text-gray-900">{{ complaint.subject }}</span>
+                                                            <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full {% if complaint.status == 'Open' %}bg-red-100 text-red-800{% else %}bg-green-100 text-green-800{% endif %}">{{ complaint.status }}</span>
+                                                        </div>
+                                                        {% if complaint.status == 'Resolved' and complaint.admin_comment %}
+                                                            <div class="mt-2 bg-white p-2 rounded-lg border border-green-100 text-xs text-gray-600">
+                                                                <span class="font-bold text-green-700 block mb-0.5">Resolution Note:</span>
+                                                                {{ complaint.admin_comment }}
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endfor %}
+                                                </div>
+                                            {% else %}
+                                                <button onclick="openComplaintModal({{ order.id }})" class="mt-2 text-xs font-bold text-gray-500 hover:text-red-600 underline decoration-2 underline-offset-4 transition-colors">
+                                                    Register Complaint
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Order Status Timeline -->
+                                    <div class="mt-6 pt-6 border-t border-gray-100">
+                                        <h5 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Status History</h5>
+                                        <div class="space-y-3">
+                                            {% for hist in order.history %}
+                                            <div class="flex items-center gap-3 text-sm">
+                                                <div class="w-2 h-2 rounded-full bg-gray-300"></div>
+                                                <div class="font-medium text-gray-900 w-40">{{ hist.status }}</div>
+                                                <div class="text-gray-500 text-xs">{{ hist.created_at.strftime('%b %d, %Y - %I:%M %p') }}</div>
+                                            </div>
+                                            {% endfor %}
+                                            <div class="flex items-center gap-3 text-sm">
+                                                <div class="w-2 h-2 rounded-full bg-gray-300"></div>
+                                                <div class="font-medium text-gray-900 w-40">Order Placed</div>
+                                                <div class="text-gray-500 text-xs">{{ order.created_at.strftime('%b %d, %Y - %I:%M %p') }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <div class="text-center py-20 px-4">
+                                <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
+                                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-900 mb-2">No orders yet</h3>
+                                <p class="text-gray-500 font-light mb-8 max-w-sm mx-auto">You haven't made any purchases. Your future rides will appear here.</p>
+                                <a href="/products" class="inline-flex items-center px-8 py-3 border border-transparent text-base font-bold rounded-full text-white bg-volt-600 hover:bg-volt-700 hover:-translate-y-1 transition-all duration-300 shadow-lg shadow-volt-500/30">
+                                    Start Shopping
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Complaint Modal -->
+<div id="complaintModal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm transition-opacity" aria-hidden="true" onclick="closeComplaintModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-middle bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:max-w-md sm:w-full border border-gray-100 animate-fade-in-up">
+            <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                <h3 class="text-lg font-black text-gray-900 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Register Complaint
+                </h3>
+                <button onclick="closeComplaintModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form action="{{ url_for('main.add_complaint') }}" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="order_id" id="complaintOrderId"/>
+                
+                <div class="px-6 py-6 space-y-4">
+                    <p class="text-sm text-gray-500 mb-4">We're sorry to hear you have an issue. Please provide details below and our team will assist you.</p>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Subject</label>
+                        <select name="subject" required class="block w-full border-gray-300 rounded-xl focus:ring-volt-500 focus:border-volt-500 sm:text-sm">
+                            <option value="Damaged Product">Damaged Product</option>
+                            <option value="Missing Parts">Missing Parts</option>
+                            <option value="Delay in Delivery">Delay in Delivery</option>
+                            <option value="Payment Issue">Payment Issue</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Description</label>
+                        <textarea name="description" rows="3" required class="block w-full border-gray-300 rounded-xl focus:ring-volt-500 focus:border-volt-500 sm:text-sm" placeholder="Please describe the issue in detail..."></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Photo (Optional)</label>
+                        <input type="file" name="photo" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100 cursor-pointer"/>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 px-6 py-4 border-t border-gray-100 flex flex-row-reverse gap-3">
+                    <button type="submit" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-gray-900 text-base font-bold text-white hover:bg-volt-600 focus:outline-none transition-all duration-300 sm:text-sm">
+                        Submit Complaint
+                    </button>
+                    <button type="button" onclick="closeComplaintModal()" class="w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-bold text-gray-700 hover:bg-gray-50 focus:outline-none transition-all duration-300 sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openComplaintModal(orderId) {
+        document.getElementById('complaintOrderId').value = orderId;
+        document.getElementById('complaintModal').classList.remove('hidden');
+    }
+    
+    function closeComplaintModal() {
+        document.getElementById('complaintModal').classList.add('hidden');
+    }
+</script>
+{% endblock %}

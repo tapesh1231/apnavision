@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Product | Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 flex-grow py-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div class="mb-8">
+            <a href="{{ url_for('admin.dashboard') }}" class="text-volt-600 hover:text-volt-800 font-medium inline-flex items-center">
+                <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Back to Dashboard
+            </a>
+            <h1 class="text-3xl font-extrabold text-gray-900 mt-4">Edit Product: {{ scooter.name }}</h1>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-8">
+                <form action="{{ url_for('admin.edit_scooter', scooter_id=scooter.id) }}" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700">Scooter Name</label>
+                        <input type="text" name="name" required value="{{ scooter.name }}" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-volt-500 focus:border-volt-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700">Category</label>
+                        <select name="category" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-volt-500 focus:border-volt-500 bg-white">
+                            <option value="Standard" {% if scooter.category == 'Standard' %}selected{% endif %}>Standard</option>
+                            <option value="Commuter" {% if scooter.category == 'Commuter' %}selected{% endif %}>Commuter</option>
+                            <option value="Performance" {% if scooter.category == 'Performance' %}selected{% endif %}>Performance</option>
+                            <option value="Off-Road" {% if scooter.category == 'Off-Road' %}selected{% endif %}>Off-Road</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700">Price (₹)</label>
+                        <input type="number" step="0.01" name="price" required value="{{ scooter.price }}" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-volt-500 focus:border-volt-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700">Current Stock</label>
+                        <input type="number" name="stock_quantity" required value="{{ scooter.stock_quantity }}" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-volt-500 focus:border-volt-500">
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gray-700">Description</label>
+                        <textarea name="description" rows="3" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-volt-500 focus:border-volt-500">{{ scooter.description }}</textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700">Top Speed (mph)</label>
+                        <input type="number" name="top_speed" required value="{{ scooter.top_speed }}" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-volt-500 focus:border-volt-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700">Range (miles)</label>
+                        <input type="number" name="range" required value="{{ scooter.range }}" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-volt-500 focus:border-volt-500">
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gray-700">Battery Life</label>
+                        <input type="text" name="battery_life" value="{{ scooter.battery_life }}" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-volt-500 focus:border-volt-500">
+                    </div>
+                    
+                    <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-gray-100 pt-6 mt-2">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700">Upload New Image File (Optional)</label>
+                            <input type="file" name="image_file" accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100 cursor-pointer">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 text-center">OR Update Image URL</label>
+                            <input type="url" name="image_url" value="{{ scooter.image_url }}" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-volt-500 focus:border-volt-500">
+                        </div>
+                        
+                        {% if scooter.image_url %}
+                        <div class="md:col-span-2 mt-4">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Current Image</label>
+                            <div class="h-48 w-full max-w-sm rounded-lg overflow-hidden bg-gray-100">
+                                <img src="{{ scooter.image_url }}" alt="Current Image" class="w-full h-full object-cover">
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="md:col-span-2 mt-4 flex justify-end gap-4">
+                        <a href="{{ url_for('admin.dashboard') }}" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-bold transition-colors">Cancel</a>
+                        <button type="submit" class="px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-volt-600 font-bold shadow-md transition-colors">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
