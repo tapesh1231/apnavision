@@ -165,6 +165,8 @@ def add_scooter():
             # Convert RGBA to RGB for JPEG compatibility if needed
             if img.mode != 'RGB' and file_ext.lower() in ['.jpg', '.jpeg']:
                 img = img.convert('RGB')
+            # Resize image to max 1200x1200 to dramatically speed up saving
+            img.thumbnail((1200, 1200))
             img.save(filepath, optimize=True, quality=85)
             
             image_url = url_for('static', filename=f'uploads/{filename}')
@@ -256,6 +258,8 @@ def edit_scooter(scooter_id):
                 img = Image.open(photo)
                 if img.mode != 'RGB' and file_ext.lower() in ['.jpg', '.jpeg']:
                     img = img.convert('RGB')
+                # Resize image to max 1200x1200 to dramatically speed up saving
+                img.thumbnail((1200, 1200))
                 img.save(filepath, optimize=True, quality=85)
                 
                 scooter.image_url = url_for('static', filename=f'uploads/{filename}')
