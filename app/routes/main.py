@@ -116,6 +116,7 @@ The ApnaVision Support Team"""
 @main_bp.route('/secret-setup-db')
 def secret_setup_db():
     try:
+        from app import db
         from app.models import Scooter, User
         db.drop_all()
         db.create_all()
