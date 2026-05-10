@@ -30,7 +30,14 @@ def contact():
 def dashboard():
     """User dashboard showing order history."""
     orders = current_user.orders.order_by(Order.created_at.desc()).all()
-    return render_template('main/dashboard.html', orders=orders)
+    
+    # Get user tasks if they are a team member
+    tasks = []
+    if current_user.team_profile:
+        from app.models import Task
+        tasks = Task.query.filter_by(assigned_to_id=current_user.team_profile.id).order_by(Task.created_at.desc()).all()
+        
+    return render_template('main/dashboard.html', orders=orders, tasks=tasks)
 
 @main_bp.route('/complaint/add', methods=['POST'])
 @login_required

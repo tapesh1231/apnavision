@@ -177,3 +177,39 @@ class Review(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     scooter_id = db.Column(db.Integer, db.ForeignKey('scooters.id'), nullable=False)
+
+class Department(db.Model):
+    """Departments for team management."""
+    __tablename__ = 'departments'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(128), nullable=False, unique=True)
+    description = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    members = db.relationship('TeamMember', backref='department', lazy='dynamic')
+
+class TeamMember(db.Model):
+    """Team members linking a user to a department."""
+    __tablename__ = 'team_members'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    department_id = db.Column(db.Integer, db.ForeignKey('departments.id'), nullable=False)
+    role = db.Column(db.String(64), default='Member') # e.g. Manager, Member
+    joined_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    user = db.relationship('User', backref=db.backref('team_profile', uselist=False))
+    tasks = db.relationship('Task', backref='assignee', lazy='dynamic')
+
+class Task(db.Model):
+    """Tasks assigned to team members."""
+    __tablename__ = 'tasks'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(256), nullable=False)
+    description = db.Column(db.Text)
+    status = db.Column(db.String(32), default='Pending') # Pending, In Progress, Completed
+    assigned_to_id = db.Column(db.Integer, db.ForeignKey('team_members.id'), nullable=True)
+    created_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    due_date = db.Column(db.DateTime, nullable=True)
+    
+    creator = db.relationship('User', foreign_keys=[created_by_id])

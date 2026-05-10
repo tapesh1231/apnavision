@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Team Management | Admin{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 flex-grow py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div class="mb-8 flex justify-between items-center">
+            <div>
+                <a href="{{ url_for('admin.dashboard') }}" class="text-volt-600 hover:text-volt-800 font-medium inline-flex items-center">
+                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    Back to Admin Dashboard
+                </a>
+                <h1 class="text-3xl font-extrabold text-gray-900 mt-4">Team & Task Management</h1>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Left Column: Forms -->
+            <div class="space-y-8 lg:col-span-1">
+                
+                <!-- Add Department -->
+                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4">Create Department</h2>
+                    <form action="{{ url_for('team.add_department') }}" method="POST" class="space-y-4">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700">Department Name</label>
+                            <input type="text" name="name" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700">Description</label>
+                            <textarea name="description" rows="2" class="mt-1 block w-full border border-gray-300 rounded-md p-2"></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-gray-900 text-white font-bold py-2 rounded-xl hover:bg-volt-600 transition-colors">Add Department</button>
+                    </form>
+                </div>
+
+                <!-- Add Team Member -->
+                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4">Add Team Member</h2>
+                    <form action="{{ url_for('team.add_member') }}" method="POST" class="space-y-4">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700">Select User</label>
+                            <select name="user_id" required class="mt-1 block w-full border border-gray-300 rounded-md p-2 bg-white">
+                                {% for user in users %}
+                                    <option value="{{ user.id }}">{{ user.username }} ({{ user.email }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700">Department</label>
+                            <select name="department_id" required class="mt-1 block w-full border border-gray-300 rounded-md p-2 bg-white">
+                                {% for dept in departments %}
+                                    <option value="{{ dept.id }}">{{ dept.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700">Role</label>
+                            <input type="text" name="role" value="Member" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                        </div>
+                        <button type="submit" class="w-full bg-gray-900 text-white font-bold py-2 rounded-xl hover:bg-volt-600 transition-colors">Assign to Team</button>
+                    </form>
+                </div>
+
+                <!-- Assign Task -->
+                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4">Assign Task</h2>
+                    <form action="{{ url_for('team.add_task') }}" method="POST" class="space-y-4">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700">Task Title</label>
+                            <input type="text" name="title" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700">Description</label>
+                            <textarea name="description" rows="2" class="mt-1 block w-full border border-gray-300 rounded-md p-2"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700">Assign To</label>
+                            <select name="assigned_to_id" class="mt-1 block w-full border border-gray-300 rounded-md p-2 bg-white">
+                                <option value="">Unassigned</option>
+                                {% for member in team_members %}
+                                    <option value="{{ member.id }}">{{ member.user.username }} ({{ member.department.name }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700">Due Date</label>
+                            <input type="date" name="due_date" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                        </div>
+                        <button type="submit" class="w-full bg-gray-900 text-white font-bold py-2 rounded-xl hover:bg-volt-600 transition-colors">Create Task</button>
+                    </form>
+                </div>
+
+            </div>
+
+            <!-- Right Column: Lists -->
+            <div class="space-y-8 lg:col-span-2">
+                
+                <!-- Departments & Members -->
+                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="px-6 py-5 border-b border-gray-200">
+                        <h3 class="text-lg font-bold text-gray-900">Departments & Members</h3>
+                    </div>
+                    <div class="p-6">
+                        {% if departments %}
+                            <div class="space-y-6">
+                                {% for dept in departments %}
+                                <div>
+                                    <h4 class="text-md font-bold text-volt-600 mb-2">{{ dept.name }}</h4>
+                                    <p class="text-sm text-gray-500 mb-3">{{ dept.description }}</p>
+                                    {% if dept.members.count() > 0 %}
+                                    <div class="bg-gray-50 rounded-xl p-4">
+                                        <ul class="space-y-3">
+                                            {% for member in dept.members %}
+                                            <li class="flex justify-between items-center text-sm">
+                                                <div>
+                                                    <span class="font-bold text-gray-900">{{ member.user.username }}</span>
+                                                    <span class="text-gray-500 ml-2">{{ member.user.email }}</span>
+                                                </div>
+                                                <span class="px-2 py-1 bg-gray-200 text-gray-800 rounded-md text-xs font-bold">{{ member.role }}</span>
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    {% else %}
+                                    <p class="text-sm text-gray-400 italic">No members assigned.</p>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-center py-4 text-gray-500">No departments created yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Tasks -->
+                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="px-6 py-5 border-b border-gray-200">
+                        <h3 class="text-lg font-bold text-gray-900">Task Board</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Task</th>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Assignee</th>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Due Date</th>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for task in tasks %}
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="font-bold text-gray-900">{{ task.title }}</div>
+                                        <div class="text-xs text-gray-500 truncate max-w-xs">{{ task.description }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        {% if task.assignee %}
+                                            <div class="text-sm font-medium text-gray-900">{{ task.assignee.user.username }}</div>
+                                            <div class="text-xs text-gray-500">{{ task.assignee.department.name }}</div>
+                                        {% else %}
+                                            <span class="text-xs text-gray-400 italic">Unassigned</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {{ task.due_date.strftime('%b %d, %Y') if task.due_date else '-' }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                            {% if task.status == 'Completed' %}bg-green-100 text-green-800
+                                            {% elif task.status == 'In Progress' %}bg-blue-100 text-blue-800
+                                            {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                            {{ task.status }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <form action="{{ url_for('team.update_task_status', task_id=task.id) }}" method="POST" class="flex gap-2">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <select name="status" class="text-xs border-gray-300 rounded-md py-1 px-2" onchange="this.form.submit()">
+                                                <option value="Pending" {% if task.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                                <option value="In Progress" {% if task.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                                                <option value="Completed" {% if task.status == 'Completed' %}selected{% endif %}>Completed</option>
+                                            </select>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="5" class="px-6 py-8 text-center text-gray-500">No tasks created yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

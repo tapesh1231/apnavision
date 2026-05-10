@@ -35,11 +35,13 @@ def create_app(config_class=Config):
     from app.routes.auth import auth_bp
     from app.routes.main import main_bp
     from app.routes.admin import admin_bp
+    from app.routes.team import team_bp
     
     app.register_blueprint(products_bp, url_prefix='/products')
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(main_bp)
     app.register_blueprint(admin_bp, url_prefix='/admin')
+    app.register_blueprint(team_bp, url_prefix='/team')
 
     # Register error handlers
     register_error_handlers(app)
