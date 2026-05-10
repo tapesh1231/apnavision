@@ -504,14 +504,22 @@ def toggle_offer(offer_id):
     return redirect(url_for('admin.dashboard'))
 
     
+# @admin_bp.route('/google-login')
+# def google_login():
+
+#     flow = Flow.from_client_config(
+#         get_google_client_config(),
+#         scopes=['https://www.googleapis.com/auth/drive.file'],
+#        # redirect_uri=current_app.config['GOOGLE_REDIRECT_URI']
+#        redirect_uri='https://apnavision.onrender.com/admin/oauth2callback'
+#     )
 @admin_bp.route('/google-login')
 def google_login():
 
     flow = Flow.from_client_config(
         get_google_client_config(),
         scopes=['https://www.googleapis.com/auth/drive.file'],
-       # redirect_uri=current_app.config['GOOGLE_REDIRECT_URI']
-       redirect_uri='https://apnavision.onrender.com/admin/oauth2callback'
+        redirect_uri='https://apnavision.onrender.com/admin/oauth2callback'
     )
 
     authorization_url, state = flow.authorization_url(
@@ -519,7 +527,6 @@ def google_login():
         include_granted_scopes='true',
         prompt='consent'
     )
-
     session['state'] = state
 
     return redirect(authorization_url)
