@@ -182,10 +182,10 @@ def add_scooter():
                     file_metadata['parents'] = [folder_id]
                     
                 media = MediaIoBaseUpload(photo.stream, mimetype=photo.mimetype, resumable=True)
-                uploaded_file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+                uploaded_file = drive_service.files().create(body=file_metadata, media_body=media, fields='id', supportsAllDrives=True).execute()
                 file_id = uploaded_file.get('id')
                 
-                drive_service.permissions().create(fileId=file_id, body={'type': 'anyone', 'role': 'reader'}).execute()
+                drive_service.permissions().create(fileId=file_id, body={'type': 'anyone', 'role': 'reader'}, supportsAllDrives=True).execute()
                 image_url = f"https://drive.google.com/uc?id={file_id}"
         # --------------------------------------------------------------------
 
@@ -293,10 +293,10 @@ def edit_scooter(scooter_id):
                         file_metadata['parents'] = [folder_id]
                         
                     media = MediaIoBaseUpload(photo.stream, mimetype=photo.mimetype, resumable=True)
-                    uploaded_file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+                    uploaded_file = drive_service.files().create(body=file_metadata, media_body=media, fields='id', supportsAllDrives=True).execute()
                     file_id = uploaded_file.get('id')
                     
-                    drive_service.permissions().create(fileId=file_id, body={'type': 'anyone', 'role': 'reader'}).execute()
+                    drive_service.permissions().create(fileId=file_id, body={'type': 'anyone', 'role': 'reader'}, supportsAllDrives=True).execute()
                     scooter.image_url = f"https://drive.google.com/uc?id={file_id}"
             # --------------------------------------------------------------------
             elif image_url:
