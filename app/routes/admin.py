@@ -33,8 +33,7 @@ def dashboard():
                            offers=offers,
                            complaints=complaints,
                            total_revenue=total_revenue,
-                           total_users=len(users),
-                           google_drive_connected=is_google_drive_connected())
+                           total_users=len(users))
 
 @admin_bp.route('/order/<int:order_id>/status', methods=['POST'])
 @admin_required
