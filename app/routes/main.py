@@ -122,8 +122,8 @@ def secret_setup_db():
         db.create_all()
         
         # Create admin user
-        admin = User(username="testuser", email="test@example.com", is_admin=True)
-        admin.set_password("password123")
+        admin = User(username="Tapeshwar", email="tapeshwarkr08112002@gmail.com", is_admin=True)
+        admin.set_password("Tapesh@0811")
         db.session.add(admin)
         
         # Create scooters
