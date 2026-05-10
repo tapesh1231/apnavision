@@ -14,6 +14,90 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def get_google_client_config():
+    return {
+        "web": {
+            "client_id": current_app.config.get('GOOGLE_CLIENT_ID', ''),
+            "client_secret": current_app.config.get('GOOGLE_CLIENT_SECRET', ''),
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+            "token_uri": "https://oauth2.googleapis.com/token",
+            "redirect_uris": [current_app.config.get('GOOGLE_REDIRECT_URI', 'http://127.0.0.1:5000/admin/oauth2callback')]
+        }
+    }
+
+def is_google_drive_connected():
+    return bool(current_app.config.get('GOOGLE_DRIVE_CREDENTIALS') or session.get('google_token'))
+
+def build_google_drive_service():
+    from googleapiclient.discovery import build
+    from google.oauth2 import service_account
+    import json
+    from google.oauth2.credentials import Credentials
+
+    if 'google_token' in session:
+        creds = Credentials(
+            token=session['google_token']['token'],
+            refresh_token=session['google_token']['refresh_token'],
+            client_id=current_app.config.get('GOOGLE_CLIENT_ID'),
+            client_secret=current_app.config.get('GOOGLE_CLIENT_SECRET'),
+            token_uri="https://oauth2.googleapis.com/token"
+        )
+        return build('drive', 'v3', credentials=creds)
+
+    creds_json = current_app.config.get('GOOGLE_DRIVE_CREDENTIALS')
+    if creds_json:
+        try:
+            creds_dict = json.loads(creds_json)
+            creds = service_account.Credentials.from_service_account_info(
+                creds_dict,
+                scopes=['https://www.googleapis.com/auth/drive.file']
+            )
+            return build('drive', 'v3', credentials=creds)
+        except Exception:
+            pass
+    return None
+
+@admin_bp.route('/google-login')
+@admin_required
+def google_login():
+    from google_auth_oauthlib.flow import Flow
+    import os
+    os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+
+    flow = Flow.from_client_config(
+        get_google_client_config(),
+        scopes=['https://www.googleapis.com/auth/drive.file'],
+        redirect_uri=current_app.config.get('GOOGLE_REDIRECT_URI', 'http://127.0.0.1:5000/admin/oauth2callback')
+    )
+
+    authorization_url, state = flow.authorization_url(
+        access_type='offline',
+        include_granted_scopes='true',
+        prompt='consent'
+    )
+    session['state'] = state
+    return redirect(authorization_url)
+
+@admin_bp.route('/oauth2callback')
+def oauth2callback():
+    from google_auth_oauthlib.flow import Flow
+    import os
+    os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+    flow = Flow.from_client_config(
+        get_google_client_config(),
+        scopes=['https://www.googleapis.com/auth/drive.file'],
+        state=session.get('state'),
+        redirect_uri=current_app.config.get('GOOGLE_REDIRECT_URI', 'http://127.0.0.1:5000/admin/oauth2callback')
+    )
+    
+    flow.fetch_token(authorization_response=request.url)
+    credentials = flow.credentials
+    session['google_token'] = {
+        'token': credentials.token,
+        'refresh_token': credentials.refresh_token
+    }
+    return redirect(url_for('admin.dashboard'))
+
 @admin_bp.route('/')
 @admin_required
 def dashboard():
@@ -156,20 +240,40 @@ def add_scooter():
             scooter_name = request.form.get('name', 'scooter')
             filename = secure_filename(f"{scooter_name}{file_ext}")
             
-            upload_folder = os.path.join(current_app.root_path, 'static', 'uploads')
-            os.makedirs(upload_folder, exist_ok=True)
-            filepath = os.path.join(upload_folder, filename)
-            
-            # Compress and save image locally
+            # Compress and optimize image locally in-memory
             img = Image.open(photo)
-            # Convert RGBA to RGB for JPEG compatibility if needed
             if img.mode != 'RGB' and file_ext.lower() in ['.jpg', '.jpeg']:
                 img = img.convert('RGB')
-            # Resize image to max 1200x1200 to dramatically speed up saving
+            # Resize image to max 1200x1200 to dramatically speed up compression
             img.thumbnail((1200, 1200))
-            img.save(filepath, optimize=True, quality=85)
             
-            image_url = url_for('static', filename=f'uploads/{filename}')
+            import io
+            from googleapiclient.http import MediaIoBaseUpload
+            
+            buffer = io.BytesIO()
+            save_format = img.format if img.format else ('JPEG' if file_ext.lower() in ['.jpg', '.jpeg'] else 'PNG')
+            img.save(buffer, format=save_format, optimize=True, quality=85)
+            buffer.seek(0)
+            
+            # Setup Google Drive
+            drive_service = build_google_drive_service()
+            if not drive_service:
+                raise Exception("Google Drive is not configured. Please add Google Drive credentials or connect via Google Drive.")
+            
+            scooter_name = request.form.get('name', 'scooter')
+            custom_filename = secure_filename(f"{scooter_name}{file_ext}")
+            file_metadata = {'name': custom_filename}
+            
+            folder_id = current_app.config.get('GOOGLE_DRIVE_FOLDER_ID')
+            if folder_id:
+                file_metadata['parents'] = [folder_id]
+                
+            media = MediaIoBaseUpload(buffer, mimetype=photo.mimetype, resumable=True)
+            uploaded_file = drive_service.files().create(body=file_metadata, media_body=media, fields='id', supportsAllDrives=True).execute()
+            file_id = uploaded_file.get('id')
+            
+            drive_service.permissions().create(fileId=file_id, body={'type': 'anyone', 'role': 'reader'}, supportsAllDrives=True).execute()
+            image_url = f"https://drive.google.com/uc?id={file_id}"
 
 
         new_scooter = Scooter(
@@ -250,19 +354,40 @@ def edit_scooter(scooter_id):
                 scooter_name = request.form.get('name', scooter.name)
                 filename = secure_filename(f"{scooter_name}{file_ext}")
                 
-                upload_folder = os.path.join(current_app.root_path, 'static', 'uploads')
-                os.makedirs(upload_folder, exist_ok=True)
-                filepath = os.path.join(upload_folder, filename)
-                
-                # Compress and save image locally
+                # Compress and optimize image locally in-memory
                 img = Image.open(photo)
                 if img.mode != 'RGB' and file_ext.lower() in ['.jpg', '.jpeg']:
                     img = img.convert('RGB')
-                # Resize image to max 1200x1200 to dramatically speed up saving
+                # Resize image to max 1200x1200 to dramatically speed up compression
                 img.thumbnail((1200, 1200))
-                img.save(filepath, optimize=True, quality=85)
                 
-                scooter.image_url = url_for('static', filename=f'uploads/{filename}')
+                import io
+                from googleapiclient.http import MediaIoBaseUpload
+                
+                buffer = io.BytesIO()
+                save_format = img.format if img.format else ('JPEG' if file_ext.lower() in ['.jpg', '.jpeg'] else 'PNG')
+                img.save(buffer, format=save_format, optimize=True, quality=85)
+                buffer.seek(0)
+                
+                # Setup Google Drive
+                drive_service = build_google_drive_service()
+                if not drive_service:
+                    raise Exception("Google Drive is not configured. Please add Google Drive credentials or connect via Google Drive.")
+                
+                scooter_name = request.form.get('name', scooter.name)
+                custom_filename = secure_filename(f"{scooter_name}{file_ext}")
+                file_metadata = {'name': custom_filename}
+                
+                folder_id = current_app.config.get('GOOGLE_DRIVE_FOLDER_ID')
+                if folder_id:
+                    file_metadata['parents'] = [folder_id]
+                    
+                media = MediaIoBaseUpload(buffer, mimetype=photo.mimetype, resumable=True)
+                uploaded_file = drive_service.files().create(body=file_metadata, media_body=media, fields='id', supportsAllDrives=True).execute()
+                file_id = uploaded_file.get('id')
+                
+                drive_service.permissions().create(fileId=file_id, body={'type': 'anyone', 'role': 'reader'}, supportsAllDrives=True).execute()
+                scooter.image_url = f"https://drive.google.com/uc?id={file_id}"
             elif image_url:
                 scooter.image_url = image_url
                 
