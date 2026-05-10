@@ -126,24 +126,6 @@ def secret_setup_db():
         admin.set_password("Tapesh@0811")
         db.session.add(admin)
         
-        # Create scooters
-        scooters = [
-            Scooter(
-                name="Volt Commuter", 
-                category="Commuter",
-                description="The perfect balance of weight and performance for your daily city commutes.", 
-                price=499.99, top_speed=15, range=20, battery_life="4 hours", stock_quantity=50,
-                image_url="https://images.unsplash.com/photo-1595822920406-b66991ce6ab0?auto=format&fit=crop&q=80&w=800"
-            ),
-            Scooter(
-                name="Volt Pro", 
-                category="Performance",
-                description="High performance dual-motor scooter for enthusiasts.", 
-                price=899.99, top_speed=25, range=40, battery_life="6 hours", stock_quantity=20,
-                image_url="https://images.unsplash.com/photo-1593121528659-e93bfa59dd33?auto=format&fit=crop&q=80&w=800"
-            )
-        ]
-        db.session.bulk_save_objects(scooters)
         db.session.commit()
         return "Database created successfully! Go to the homepage now."
     except Exception as e:
