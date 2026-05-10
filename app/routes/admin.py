@@ -28,16 +28,6 @@ def build_google_drive_service():
     from googleapiclient.discovery import build
     from google.oauth2 import service_account
 
-    # Use service account credentials first if available.
-    creds_json = current_app.config.get('GOOGLE_DRIVE_CREDENTIALS')
-    if creds_json:
-        creds_dict = json.loads(creds_json)
-        creds = service_account.Credentials.from_service_account_info(
-            creds_dict,
-            scopes=['https://www.googleapis.com/auth/drive.file']
-        )
-        return build('drive', 'v3', credentials=creds)
-
     if 'google_token' in session:
         creds = Credentials(
             token=session['google_token']['token'],
@@ -45,6 +35,16 @@ def build_google_drive_service():
             token_uri='https://oauth2.googleapis.com/token',
             client_id=current_app.config.get('GOOGLE_CLIENT_ID'),
             client_secret=current_app.config.get('GOOGLE_CLIENT_SECRET')
+        )
+        return build('drive', 'v3', credentials=creds)
+
+    # Fallback to service account credentials if available.
+    creds_json = current_app.config.get('GOOGLE_DRIVE_CREDENTIALS')
+    if creds_json:
+        creds_dict = json.loads(creds_json)
+        creds = service_account.Credentials.from_service_account_info(
+            creds_dict,
+            scopes=['https://www.googleapis.com/auth/drive.file']
         )
         return build('drive', 'v3', credentials=creds)
 
@@ -519,7 +519,7 @@ def google_login():
     flow = Flow.from_client_config(
         get_google_client_config(),
         scopes=['https://www.googleapis.com/auth/drive.file'],
-        redirect_uri='https://apnavision.onrender.com/admin/oauth2callback'
+        redirect_uri=current_app.config['GOOGLE_REDIRECT_URI']
     )
 
     authorization_url, state = flow.authorization_url(
@@ -539,8 +539,7 @@ def oauth2callback():
         get_google_client_config(),
         scopes=['https://www.googleapis.com/auth/drive.file'],
         state=session['state'],
-        #redirect_uri=current_app.config['GOOGLE_REDIRECT_URI']
-        redirect_uri='https://apnavision.onrender.com/admin/oauth2callback'
+        redirect_uri=current_app.config['GOOGLE_REDIRECT_URI']
     )
 
     flow.fetch_token(authorization_response=request.url)
