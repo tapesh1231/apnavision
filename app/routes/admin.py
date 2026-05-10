@@ -531,7 +531,8 @@ def oauth2callback():
         get_google_client_config(),
         scopes=['https://www.googleapis.com/auth/drive.file'],
         state=session['state'],
-        redirect_uri=current_app.config['GOOGLE_REDIRECT_URI']
+        #redirect_uri=current_app.config['GOOGLE_REDIRECT_URI']
+        redirect_uri='https://apnavision.onrender.com/admin/oauth2callback'
     )
 
     flow.fetch_token(authorization_response=request.url)
