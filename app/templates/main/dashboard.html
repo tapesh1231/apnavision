@@ -14,19 +14,32 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
             <!-- Profile Overview (Left Column) -->
-            <div class="lg:col-span-1 animate-fade-in-up delay-100">
-                <div class="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-3xl border border-gray-100 overflow-hidden sticky top-28">
+            <div class="lg:col-span-1 animate-fade-in-up delay-100 space-y-6">
+                <div class="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-3xl border border-gray-100 overflow-hidden">
                     <div class="px-8 py-8 border-b border-gray-100 bg-gray-50/50">
+                        {% if current_user.profile_photo_url %}
+                        <div class="w-24 h-24 rounded-2xl overflow-hidden mb-6 shadow-lg border border-gray-200">
+                            <img src="{{ current_user.profile_photo_url }}" class="w-full h-full object-cover">
+                        </div>
+                        {% else %}
                         <div class="w-20 h-20 bg-gradient-to-br from-volt-400 to-volt-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-volt-500/30 text-white font-bold text-3xl">
                             {{ current_user.username[0]|upper }}
                         </div>
+                        {% endif %}
                         <h3 class="text-2xl font-bold text-gray-900">{{ current_user.username }}</h3>
                         <p class="text-gray-500 font-medium">{{ current_user.email }}</p>
+                        {% if current_user.team_profile %}
+                        <p class="text-xs font-bold text-volt-600 mt-2 bg-volt-50 inline-block px-3 py-1 rounded-full uppercase">{{ current_user.team_profile.role }} &middot; {{ current_user.team_profile.department.name }}</p>
+                        {% endif %}
                     </div>
                     <div class="px-8 py-6">
                         <div class="flex justify-between items-center py-3 border-b border-gray-50">
                             <span class="text-sm text-gray-500 font-medium uppercase tracking-wider">Member Since</span>
                             <span class="text-sm font-bold text-gray-900">{{ current_user.created_at.strftime('%Y') }}</span>
+                        </div>
+                        <div class="flex justify-between items-center py-3 border-b border-gray-50">
+                            <span class="text-sm text-gray-500 font-medium uppercase tracking-wider">Phone</span>
+                            <span class="text-sm font-bold text-gray-900">{{ current_user.phone_number or 'Not provided' }}</span>
                         </div>
                         <div class="flex justify-between items-center py-3">
                             <span class="text-sm text-gray-500 font-medium uppercase tracking-wider">Total Orders</span>
@@ -34,12 +47,35 @@
                         </div>
                         
                         <div class="mt-8 pt-6 border-t border-gray-100">
-                            <a href="/products" class="w-full bg-black border border-transparent rounded-xl py-3 px-4 flex items-center justify-center text-sm font-bold text-white hover:bg-volt-500 hover:text-black transition-all duration-300">
+                            <a href="/products" class="w-full bg-black border border-transparent rounded-xl py-3 px-4 flex items-center justify-center text-sm font-bold text-white hover:bg-volt-500 hover:text-black transition-all duration-300 mb-3">
                                 Browse Scooters
                             </a>
                         </div>
                     </div>
                 </div>
+
+                {% if current_user.team_profile %}
+                <!-- Edit Team Profile Form -->
+                <div class="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-3xl border border-gray-100 overflow-hidden">
+                    <div class="px-6 py-5 border-b border-gray-100 bg-gray-50/50">
+                        <h3 class="text-lg font-bold text-gray-900">Company Profile Setup</h3>
+                    </div>
+                    <div class="p-6">
+                        <form action="{{ url_for('main.update_profile') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700">Phone Number</label>
+                                <input type="text" name="phone_number" value="{{ current_user.phone_number or '' }}" class="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700">Profile Photo</label>
+                                <input type="file" name="profile_photo" accept="image/*" class="mt-1 block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-volt-50 file:text-volt-700 hover:file:bg-volt-100 cursor-pointer">
+                            </div>
+                            <button type="submit" class="w-full bg-gray-900 text-white font-bold py-2 rounded-xl text-sm hover:bg-volt-600 transition-colors">Save Profile</button>
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
             </div>
 
             <!-- Order History (Right Column) -->

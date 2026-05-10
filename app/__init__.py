@@ -43,6 +43,14 @@ def create_app(config_class=Config):
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(team_bp, url_prefix='/team')
 
+    @app.before_request
+    def check_password_change():
+        from flask_login import current_user
+        from flask import request, redirect, url_for
+        if current_user.is_authenticated and current_user.must_change_password:
+            if request.endpoint and request.endpoint not in ['auth.change_password', 'auth.logout', 'static']:
+                return redirect(url_for('auth.change_password'))
+
     # Register error handlers
     register_error_handlers(app)
 

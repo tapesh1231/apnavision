@@ -15,6 +15,9 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(256), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
+    must_change_password = db.Column(db.Boolean, default=False)
+    profile_photo_url = db.Column(db.String(256))
+    phone_number = db.Column(db.String(32))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships

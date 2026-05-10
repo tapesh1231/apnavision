@@ -39,6 +39,39 @@ def dashboard():
         
     return render_template('main/dashboard.html', orders=orders, tasks=tasks)
 
+@main_bp.route('/profile/update', methods=['POST'])
+@login_required
+def update_profile():
+    from flask import request, flash, redirect, url_for, current_app
+    from app import db
+    import os
+    from werkzeug.utils import secure_filename
+    
+    phone_number = request.form.get('phone_number')
+    if phone_number is not None:
+        current_user.phone_number = phone_number
+        
+    profile_photo = request.files.get('profile_photo')
+    if profile_photo and profile_photo.filename:
+        filename = secure_filename(f"user_{current_user.id}_{profile_photo.filename}")
+        upload_folder = os.path.join(current_app.root_path, 'static', 'uploads')
+        os.makedirs(upload_folder, exist_ok=True)
+        filepath = os.path.join(upload_folder, filename)
+        
+        # Optimize image
+        from PIL import Image
+        img = Image.open(profile_photo)
+        if img.mode != 'RGB':
+            img = img.convert('RGB')
+        img.thumbnail((400, 400)) # Smaller thumbnail for profile
+        img.save(filepath, format='JPEG', quality=85, optimize=True)
+        
+        current_user.profile_photo_url = url_for('static', filename=f'uploads/{filename}')
+        
+    db.session.commit()
+    flash('Profile updated successfully.', 'success')
+    return redirect(url_for('main.dashboard'))
+
 @main_bp.route('/complaint/add', methods=['POST'])
 @login_required
 def add_complaint():

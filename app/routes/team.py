@@ -44,21 +44,50 @@ def add_department():
 @team_bp.route('/member/add', methods=['POST'])
 @admin_required
 def add_member():
-    user_id = request.form.get('user_id')
+    name = request.form.get('name')
+    email = request.form.get('email')
     department_id = request.form.get('department_id')
     role = request.form.get('role', 'Member')
     
-    if not user_id or not department_id:
-        flash('User and Department are required.', 'error')
+    if not name or not email or not department_id:
+        flash('Name, Email, and Department are required.', 'error')
         return redirect(url_for('team.dashboard'))
         
-    if TeamMember.query.filter_by(user_id=user_id).first():
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        import secrets
+        import string
+        from app.utils import send_email
+        
+        # Generate a random 10-character password
+        alphabet = string.ascii_letters + string.digits
+        password = ''.join(secrets.choice(alphabet) for i in range(10))
+        
+        user = User(username=name, email=email, must_change_password=True)
+        user.set_password(password)
+        db.session.add(user)
+        db.session.flush() # Get user ID
+        
+        email_body = f"""Hello {name},
+
+You have been added to the team at ApnaVision!
+Your login credentials are:
+Email: {email}
+Password: {password}
+
+You will be required to change this password upon your first login.
+
+Best regards,
+ApnaVision Admin Team"""
+        send_email("Welcome to the ApnaVision Team", email, email_body)
+        
+    if TeamMember.query.filter_by(user_id=user.id).first():
         flash('User is already a team member.', 'error')
     else:
-        member = TeamMember(user_id=user_id, department_id=department_id, role=role)
+        member = TeamMember(user_id=user.id, department_id=department_id, role=role)
         db.session.add(member)
         db.session.commit()
-        flash('Team member added successfully.', 'success')
+        flash('Team member added and credentials emailed successfully.', 'success')
         
     return redirect(url_for('team.dashboard'))
 

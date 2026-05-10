@@ -54,3 +54,24 @@ def logout():
     logout_user()
     flash('You have been logged out.', 'info')
     return redirect(url_for('main.index'))
+
+@auth_bp.route('/change-password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    """Force password change for new team members."""
+    if request.method == 'POST':
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+        
+        if not new_password or new_password != confirm_password:
+            flash('Passwords do not match or are empty.', 'error')
+        elif len(new_password) < 6:
+            flash('Password must be at least 6 characters long.', 'error')
+        else:
+            current_user.set_password(new_password)
+            current_user.must_change_password = False
+            db.session.commit()
+            flash('Password successfully updated. Welcome!', 'success')
+            return redirect(url_for('main.dashboard'))
+            
+    return render_template('auth/change_password.html')
