@@ -44,6 +44,10 @@ def create_app(config_class=Config):
     # Register error handlers
     register_error_handlers(app)
 
+    # Register custom template filters
+    from app.utils import auto_decorate_filter
+    app.jinja_env.filters['auto_decorate'] = auto_decorate_filter
+
     return app
 
 def register_error_handlers(app):

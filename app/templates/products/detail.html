@@ -61,7 +61,7 @@
                 </div>
 
                 <div class="prose prose-lg text-gray-500 font-light mb-10">
-                    <p>{{ scooter.description }}</p>
+                    {{ scooter.description | auto_decorate | safe }}
                 </div>
 
                 <!-- Specs Grid -->
