@@ -18,3 +18,4 @@ razorpay==1.4.1
 psycopg2-binary==2.9.9
 Flask-Mail==0.9.1
 google-auth-oauthlib
+Pillow==10.0.0
