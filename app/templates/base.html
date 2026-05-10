@@ -78,10 +78,10 @@
                         <span class="font-extrabold text-2xl tracking-tight text-gray-900 group-hover:text-volt-600 transition-colors">ApnaVision</span>
                     </a>
                     <div class="hidden md:ml-10 md:flex md:space-x-8">
-                        <a href="/" class="text-gray-600 hover:text-volt-600 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-volt-500 text-sm font-semibold transition-all">Home</a>
-                        <a href="/products" class="text-gray-600 hover:text-volt-600 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-volt-500 text-sm font-semibold transition-all">Scooters</a>
-                        <a href="/about" class="text-gray-600 hover:text-volt-600 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-volt-500 text-sm font-semibold transition-all">Innovation</a>
-                        <a href="/contact" class="text-gray-600 hover:text-volt-600 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-volt-500 text-sm font-semibold transition-all">Contact Us</a>
+                        <a href="/" class="{% if request.endpoint == 'main.index' %}text-volt-600 border-volt-500{% else %}text-gray-600 border-transparent hover:text-volt-600 hover:border-volt-500{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-semibold transition-all">Home</a>
+                        <a href="/products" class="{% if request.endpoint == 'products.index' or request.endpoint == 'products.detail' %}text-volt-600 border-volt-500{% else %}text-gray-600 border-transparent hover:text-volt-600 hover:border-volt-500{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-semibold transition-all">Scooters</a>
+                        <a href="/about" class="{% if request.endpoint == 'main.about' %}text-volt-600 border-volt-500{% else %}text-gray-600 border-transparent hover:text-volt-600 hover:border-volt-500{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-semibold transition-all">Innovation</a>
+                        <a href="/contact" class="{% if request.endpoint == 'main.contact' %}text-volt-600 border-volt-500{% else %}text-gray-600 border-transparent hover:text-volt-600 hover:border-volt-500{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-semibold transition-all">Contact Us</a>
                     </div>
                 </div>
                 <div class="flex items-center space-x-6">
