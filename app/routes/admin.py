@@ -176,6 +176,11 @@ def add_scooter():
                 scooter_name = request.form.get('name', 'scooter')
                 custom_filename = secure_filename(f"{scooter_name}{file_ext}")
                 file_metadata = {'name': custom_filename}
+                
+                folder_id = os.environ.get('GOOGLE_DRIVE_FOLDER_ID')
+                if folder_id:
+                    file_metadata['parents'] = [folder_id]
+                    
                 media = MediaIoBaseUpload(photo.stream, mimetype=photo.mimetype, resumable=True)
                 uploaded_file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
                 file_id = uploaded_file.get('id')
@@ -282,6 +287,11 @@ def edit_scooter(scooter_id):
                     scooter_name = request.form.get('name', scooter.name)
                     custom_filename = secure_filename(f"{scooter_name}{file_ext}")
                     file_metadata = {'name': custom_filename}
+                    
+                    folder_id = os.environ.get('GOOGLE_DRIVE_FOLDER_ID')
+                    if folder_id:
+                        file_metadata['parents'] = [folder_id]
+                        
                     media = MediaIoBaseUpload(photo.stream, mimetype=photo.mimetype, resumable=True)
                     uploaded_file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
                     file_id = uploaded_file.get('id')
