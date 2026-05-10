@@ -130,3 +130,65 @@ def update_task_status(task_id):
     if current_user.is_admin:
         return redirect(url_for('team.dashboard'))
     return redirect(url_for('main.dashboard'))
+
+@team_bp.route('/sales-hub')
+@login_required
+def sales_hub():
+    """Dashboard specifically for the Sales Team to handle inquiries."""
+    # Check if user is admin or in Sales
+    is_sales = False
+    if current_user.team_profile and current_user.team_profile.department.name.lower() == 'sales':
+        is_sales = True
+        
+    if not (current_user.is_admin or is_sales):
+        flash('Unauthorized access. Sales Team only.', 'error')
+        return redirect(url_for('main.dashboard'))
+        
+    from app.models import Inquiry
+    
+    # Active inquiries: New or assigned to current user and not closed
+    unassigned_inquiries = Inquiry.query.filter_by(status='New', assigned_to_id=None).order_by(Inquiry.created_at.desc()).all()
+    
+    if current_user.is_admin:
+        my_inquiries = Inquiry.query.filter(Inquiry.assigned_to_id != None).order_by(Inquiry.updated_at.desc()).all()
+    else:
+        my_inquiries = Inquiry.query.filter_by(assigned_to_id=current_user.team_profile.id).order_by(Inquiry.updated_at.desc()).all()
+        
+    # Performance Stats
+    total_handled = 0
+    total_converted = 0
+    if current_user.team_profile:
+        total_handled = Inquiry.query.filter_by(assigned_to_id=current_user.team_profile.id).count()
+        total_converted = Inquiry.query.filter_by(assigned_to_id=current_user.team_profile.id, status='Converted').count()
+        
+    return render_template('team/sales_hub.html', 
+                          unassigned=unassigned_inquiries, 
+                          my_inquiries=my_inquiries,
+                          total_handled=total_handled,
+                          total_converted=total_converted)
+
+@team_bp.route('/inquiry/<int:inquiry_id>/update', methods=['POST'])
+@login_required
+def update_inquiry(inquiry_id):
+    from app.models import Inquiry
+    inquiry = Inquiry.query.get_or_404(inquiry_id)
+    
+    action = request.form.get('action')
+    notes = request.form.get('notes')
+    
+    if action == 'claim':
+        if not inquiry.assigned_to_id and current_user.team_profile:
+            inquiry.assigned_to_id = current_user.team_profile.id
+            inquiry.status = 'Contacted'
+            flash('Inquiry claimed successfully. You are now the owner.', 'success')
+            
+    elif action == 'update':
+        new_status = request.form.get('status')
+        if new_status:
+            inquiry.status = new_status
+        if notes:
+            inquiry.notes = notes
+        flash('Inquiry updated successfully.', 'success')
+        
+    db.session.commit()
+    return redirect(url_for('team.sales_hub'))

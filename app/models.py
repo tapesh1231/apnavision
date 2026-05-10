@@ -216,3 +216,21 @@ class Task(db.Model):
     due_date = db.Column(db.DateTime, nullable=True)
     
     creator = db.relationship('User', foreign_keys=[created_by_id])
+
+class Inquiry(db.Model):
+    """Customer inquiries for the sales team to handle."""
+    __tablename__ = 'inquiries'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(128), nullable=False)
+    email = db.Column(db.String(120), nullable=False)
+    phone = db.Column(db.String(32), nullable=True)
+    message = db.Column(db.Text, nullable=False)
+    status = db.Column(db.String(32), default='New') # New, Contacted, In Progress, Converted, Lost
+    notes = db.Column(db.Text, nullable=True) # Sales team internal notes
+    assigned_to_id = db.Column(db.Integer, db.ForeignKey('team_members.id'), nullable=True)
+    converted_order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    assigned_to = db.relationship('TeamMember', backref=db.backref('assigned_inquiries', lazy='dynamic'))
+    converted_order = db.relationship('Order', backref='from_inquiry')

@@ -20,7 +20,25 @@ def about():
 def contact():
     """Contact page."""
     from flask import request, flash, redirect, url_for
+    from app.models import Inquiry
+    from app import db
+    
     if request.method == 'POST':
+        first_name = request.form.get('first_name')
+        last_name = request.form.get('last_name')
+        name = f"{first_name} {last_name}"
+        email = request.form.get('email')
+        phone = request.form.get('phone', '') # Added phone to form
+        subject = request.form.get('subject')
+        message_body = request.form.get('message')
+        
+        # Prepend subject to message
+        full_message = f"Subject: {subject}\n\n{message_body}"
+        
+        inquiry = Inquiry(name=name, email=email, phone=phone, message=full_message)
+        db.session.add(inquiry)
+        db.session.commit()
+        
         flash('Thank you for contacting us! Our support team will reach out within 24 hours.', 'success')
         return redirect(url_for('main.contact'))
     return render_template('main/contact.html')
