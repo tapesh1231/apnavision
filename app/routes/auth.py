@@ -5,6 +5,7 @@ from app.forms import RegistrationForm, LoginForm
 from flask_login import login_user, logout_user, current_user, login_required
 from urllib.parse import urlparse
 
+
 auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/register', methods=['GET', 'POST'])

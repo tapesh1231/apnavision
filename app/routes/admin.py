@@ -1,8 +1,54 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app, abort
+import json
+from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app, abort, session
 from app.models import User, Scooter, Order
 from app import db
 from flask_login import login_required, current_user
 from functools import wraps
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import Flow
+
+
+def get_google_client_config():
+    return {
+        "web": {
+            "client_id": current_app.config['GOOGLE_CLIENT_ID'],
+            "client_secret": current_app.config['GOOGLE_CLIENT_SECRET'],
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+            "token_uri": "https://oauth2.googleapis.com/token",
+            "redirect_uris": [current_app.config['GOOGLE_REDIRECT_URI']]
+        }
+    }
+
+
+def is_google_drive_connected():
+    return bool(current_app.config.get('GOOGLE_DRIVE_CREDENTIALS') or session.get('google_token'))
+
+
+def build_google_drive_service():
+    from googleapiclient.discovery import build
+    from google.oauth2 import service_account
+
+    # Use service account credentials first if available.
+    creds_json = current_app.config.get('GOOGLE_DRIVE_CREDENTIALS')
+    if creds_json:
+        creds_dict = json.loads(creds_json)
+        creds = service_account.Credentials.from_service_account_info(
+            creds_dict,
+            scopes=['https://www.googleapis.com/auth/drive.file']
+        )
+        return build('drive', 'v3', credentials=creds)
+
+    if 'google_token' in session:
+        creds = Credentials(
+            token=session['google_token']['token'],
+            refresh_token=session['google_token'].get('refresh_token'),
+            token_uri='https://oauth2.googleapis.com/token',
+            client_id=current_app.config.get('GOOGLE_CLIENT_ID'),
+            client_secret=current_app.config.get('GOOGLE_CLIENT_SECRET')
+        )
+        return build('drive', 'v3', credentials=creds)
+
+    return None
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -33,7 +79,8 @@ def dashboard():
                            offers=offers,
                            complaints=complaints,
                            total_revenue=total_revenue,
-                           total_users=len(users))
+                           total_users=len(users),
+                           google_drive_connected=is_google_drive_connected())
 
 @admin_bp.route('/order/<int:order_id>/status', methods=['POST'])
 @admin_required
@@ -159,35 +206,64 @@ def add_scooter():
         # ---------------------------------------------------
         
         # --- ADD THIS NEW CODE FOR GOOGLE DRIVE INTEGRATION ON RENDER.COM ---
-        # This securely uploads the image directly to Google Drive.
-        if photo and photo.filename:
-            import json, os
-            from google.oauth2 import service_account
-            from googleapiclient.discovery import build
-            from googleapiclient.http import MediaIoBaseUpload
+        # This securely uploads the image directly to Google Drive using service account.
+        # if photo and photo.filename:
+        #     import json, os
+        #     from google.oauth2 import service_account
+        #     from googleapiclient.discovery import build
+        #     from googleapiclient.http import MediaIoBaseUpload
             
-            creds_json = os.environ.get('GOOGLE_DRIVE_CREDENTIALS')
-            if creds_json:
-                creds_dict = json.loads(creds_json)
-                creds = service_account.Credentials.from_service_account_info(creds_dict, scopes=['https://www.googleapis.com/auth/drive.file'])
-                drive_service = build('drive', 'v3', credentials=creds)
+        #     creds_json = os.environ.get('GOOGLE_DRIVE_CREDENTIALS')
+        #     if creds_json:
+        #         creds_dict = json.loads(creds_json)
+        #         creds = service_account.Credentials.from_service_account_info(creds_dict, scopes=['https://www.googleapis.com/auth/drive.file'])
+        #         drive_service = build('drive', 'v3', credentials=creds)
                 
-                file_ext = os.path.splitext(photo.filename)[1]
-                scooter_name = request.form.get('name', 'scooter')
-                custom_filename = secure_filename(f"{scooter_name}{file_ext}")
-                file_metadata = {'name': custom_filename}
+        #         file_ext = os.path.splitext(photo.filename)[1]
+        #         scooter_name = request.form.get('name', 'scooter')
+        #         custom_filename = secure_filename(f"{scooter_name}{file_ext}")
+        #         file_metadata = {'name': custom_filename}
                 
-                folder_id = os.environ.get('GOOGLE_DRIVE_FOLDER_ID')
-                if folder_id:
-                    file_metadata['parents'] = [folder_id]
+        #         folder_id = os.environ.get('GOOGLE_DRIVE_FOLDER_ID')
+        #         if folder_id:
+        #             file_metadata['parents'] = [folder_id]
                     
-                media = MediaIoBaseUpload(photo.stream, mimetype=photo.mimetype, resumable=True)
-                uploaded_file = drive_service.files().create(body=file_metadata, media_body=media, fields='id', supportsAllDrives=True).execute()
-                file_id = uploaded_file.get('id')
+        #         media = MediaIoBaseUpload(photo.stream, mimetype=photo.mimetype, resumable=True)
+        #         uploaded_file = drive_service.files().create(body=file_metadata, media_body=media, fields='id', supportsAllDrives=True).execute()
+        #         file_id = uploaded_file.get('id')
                 
-                drive_service.permissions().create(fileId=file_id, body={'type': 'anyone', 'role': 'reader'}, supportsAllDrives=True).execute()
-                image_url = f"https://drive.google.com/uc?id={file_id}"
+        #         drive_service.permissions().create(fileId=file_id, body={'type': 'anyone', 'role': 'reader'}, supportsAllDrives=True).execute()
+        #         image_url = f"https://drive.google.com/uc?id={file_id}"
         # --------------------------------------------------------------------
+
+
+        
+        # --- ADD THIS NEW CODE FOR GOOGLE DRIVE INTEGRATION ON RENDER.COM ---
+        # This securely uploads the image directly to Google Drive using OAuth.
+        if photo and photo.filename:
+            from googleapiclient.http import MediaIoBaseUpload
+
+            drive_service = build_google_drive_service()
+            if not drive_service:
+                raise Exception("Google Drive is not configured. Please add Google Drive credentials or connect via Google Drive.")
+
+            file_ext = os.path.splitext(photo.filename)[1]
+            scooter_name = request.form.get('name', 'scooter')
+            custom_filename = secure_filename(f"{scooter_name}{file_ext}")
+            file_metadata = {'name': custom_filename}
+
+            folder_id = current_app.config.get('GOOGLE_DRIVE_FOLDER_ID')
+            if folder_id:
+                file_metadata['parents'] = [folder_id]
+
+            media = MediaIoBaseUpload(photo.stream, mimetype=photo.mimetype, resumable=True)
+            uploaded_file = drive_service.files().create(body=file_metadata, media_body=media, fields='id', supportsAllDrives=True).execute()
+            file_id = uploaded_file.get('id')
+
+            drive_service.permissions().create(fileId=file_id, body={'type': 'anyone', 'role': 'reader'}, supportsAllDrives=True).execute()
+            image_url = f"https://drive.google.com/uc?id={file_id}"
+     # --------------------------------------------------------------------
+
 
         new_scooter = Scooter(
             name=request.form.get('name'),
@@ -270,34 +346,29 @@ def edit_scooter(scooter_id):
             # ---------------------------------------------------
             
             # --- ADD THIS NEW CODE FOR GOOGLE DRIVE INTEGRATION ON RENDER.COM ---
-            # This securely uploads the image directly to Google Drive.
+            # This securely uploads the image directly to Google Drive using OAuth.
             if photo and photo.filename:
-                import json, os
-                from google.oauth2 import service_account
-                from googleapiclient.discovery import build
                 from googleapiclient.http import MediaIoBaseUpload
-                
-                creds_json = os.environ.get('GOOGLE_DRIVE_CREDENTIALS')
-                if creds_json:
-                    creds_dict = json.loads(creds_json)
-                    creds = service_account.Credentials.from_service_account_info(creds_dict, scopes=['https://www.googleapis.com/auth/drive.file'])
-                    drive_service = build('drive', 'v3', credentials=creds)
-                    
-                    file_ext = os.path.splitext(photo.filename)[1]
-                    scooter_name = request.form.get('name', scooter.name)
-                    custom_filename = secure_filename(f"{scooter_name}{file_ext}")
-                    file_metadata = {'name': custom_filename}
-                    
-                    folder_id = os.environ.get('GOOGLE_DRIVE_FOLDER_ID')
-                    if folder_id:
-                        file_metadata['parents'] = [folder_id]
-                        
-                    media = MediaIoBaseUpload(photo.stream, mimetype=photo.mimetype, resumable=True)
-                    uploaded_file = drive_service.files().create(body=file_metadata, media_body=media, fields='id', supportsAllDrives=True).execute()
-                    file_id = uploaded_file.get('id')
-                    
-                    drive_service.permissions().create(fileId=file_id, body={'type': 'anyone', 'role': 'reader'}, supportsAllDrives=True).execute()
-                    scooter.image_url = f"https://drive.google.com/uc?id={file_id}"
+
+                drive_service = build_google_drive_service()
+                if not drive_service:
+                    raise Exception("Google Drive is not configured. Please add Google Drive credentials or connect via Google Drive.")
+
+                file_ext = os.path.splitext(photo.filename)[1]
+                scooter_name = request.form.get('name', scooter.name)
+                custom_filename = secure_filename(f"{scooter_name}{file_ext}")
+                file_metadata = {'name': custom_filename}
+
+                folder_id = current_app.config.get('GOOGLE_DRIVE_FOLDER_ID')
+                if folder_id:
+                    file_metadata['parents'] = [folder_id]
+
+                media = MediaIoBaseUpload(photo.stream, mimetype=photo.mimetype, resumable=True)
+                uploaded_file = drive_service.files().create(body=file_metadata, media_body=media, fields='id', supportsAllDrives=True).execute()
+                file_id = uploaded_file.get('id')
+
+                drive_service.permissions().create(fileId=file_id, body={'type': 'anyone', 'role': 'reader'}, supportsAllDrives=True).execute()
+                scooter.image_url = f"https://drive.google.com/uc?id={file_id}"
             # --------------------------------------------------------------------
             elif image_url:
                 scooter.image_url = image_url
@@ -430,4 +501,46 @@ def toggle_offer(offer_id):
     db.session.commit()
     status = "activated" if offer.is_active else "deactivated"
     flash(f'Offer "{offer.name}" {status}.', 'success')
+    return redirect(url_for('admin.dashboard'))
+
+    
+@admin_bp.route('/google-login')
+def google_login():
+
+    flow = Flow.from_client_config(
+        get_google_client_config(),
+        scopes=['https://www.googleapis.com/auth/drive.file'],
+        redirect_uri=current_app.config['GOOGLE_REDIRECT_URI']
+    )
+
+    authorization_url, state = flow.authorization_url(
+        access_type='offline',
+        include_granted_scopes='true',
+        prompt='consent'
+    )
+
+    session['state'] = state
+
+    return redirect(authorization_url)
+
+
+@admin_bp.route('/oauth2callback')
+def oauth2callback():
+
+    flow = Flow.from_client_config(
+        get_google_client_config(),
+        scopes=['https://www.googleapis.com/auth/drive.file'],
+        state=session['state'],
+        redirect_uri=current_app.config['GOOGLE_REDIRECT_URI']
+    )
+
+    flow.fetch_token(authorization_response=request.url)
+
+    credentials = flow.credentials
+
+    session['google_token'] = {
+        'token': credentials.token,
+        'refresh_token': credentials.refresh_token
+    }
+
     return redirect(url_for('admin.dashboard'))

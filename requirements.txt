@@ -17,3 +17,4 @@ googleapis-common-protos==1.75.0
 razorpay==1.4.1
 psycopg2-binary==2.9.9
 Flask-Mail==0.9.1
+google-auth-oauthlib
