@@ -172,7 +172,10 @@ def add_scooter():
                 creds = service_account.Credentials.from_service_account_info(creds_dict, scopes=['https://www.googleapis.com/auth/drive.file'])
                 drive_service = build('drive', 'v3', credentials=creds)
                 
-                file_metadata = {'name': secure_filename(photo.filename)}
+                file_ext = os.path.splitext(photo.filename)[1]
+                scooter_name = request.form.get('name', 'scooter')
+                custom_filename = secure_filename(f"{scooter_name}{file_ext}")
+                file_metadata = {'name': custom_filename}
                 media = MediaIoBaseUpload(photo.stream, mimetype=photo.mimetype, resumable=True)
                 uploaded_file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
                 file_id = uploaded_file.get('id')
@@ -275,7 +278,10 @@ def edit_scooter(scooter_id):
                     creds = service_account.Credentials.from_service_account_info(creds_dict, scopes=['https://www.googleapis.com/auth/drive.file'])
                     drive_service = build('drive', 'v3', credentials=creds)
                     
-                    file_metadata = {'name': secure_filename(photo.filename)}
+                    file_ext = os.path.splitext(photo.filename)[1]
+                    scooter_name = request.form.get('name', scooter.name)
+                    custom_filename = secure_filename(f"{scooter_name}{file_ext}")
+                    file_metadata = {'name': custom_filename}
                     media = MediaIoBaseUpload(photo.stream, mimetype=photo.mimetype, resumable=True)
                     uploaded_file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
                     file_id = uploaded_file.get('id')
