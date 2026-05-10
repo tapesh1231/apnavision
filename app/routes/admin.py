@@ -239,42 +239,26 @@ def edit_scooter(scooter_id):
             image_url = request.form.get('image_url')
             photo = request.files.get('image_file')
             
-            # --- REMOVE THIS BLOCK FOR RENDER.COM DEPLOYMENT ---
-            # This saves files to local disk, which Render will delete on restart.
-            # if photo and photo.filename:
-            #     filename = secure_filename(photo.filename)
-            #     upload_folder = os.path.join(current_app.root_path, 'static', 'uploads')
-            #     os.makedirs(upload_folder, exist_ok=True)
-            #     filepath = os.path.join(upload_folder, filename)
-            #     photo.save(filepath)
-            #     scooter.image_url = url_for('static', filename=f'uploads/{filename}')
-            # ---------------------------------------------------
-            
-            # --- ADD THIS NEW CODE FOR GOOGLE DRIVE INTEGRATION ON RENDER.COM ---
-            # This securely uploads the image directly to Google Drive using OAuth.
             if photo and photo.filename:
-                from googleapiclient.http import MediaIoBaseUpload
-
-                drive_service = build_google_drive_service()
-                if not drive_service:
-                    raise Exception("Google Drive is not configured. Please add Google Drive credentials or connect via Google Drive.")
-
+                from PIL import Image
+                import os
+                from werkzeug.utils import secure_filename
+                
                 file_ext = os.path.splitext(photo.filename)[1]
                 scooter_name = request.form.get('name', scooter.name)
-                custom_filename = secure_filename(f"{scooter_name}{file_ext}")
-                file_metadata = {'name': custom_filename}
-
-                folder_id = current_app.config.get('GOOGLE_DRIVE_FOLDER_ID')
-                if folder_id:
-                    file_metadata['parents'] = [folder_id]
-
-                media = MediaIoBaseUpload(photo.stream, mimetype=photo.mimetype, resumable=True)
-                uploaded_file = drive_service.files().create(body=file_metadata, media_body=media, fields='id', supportsAllDrives=True).execute()
-                file_id = uploaded_file.get('id')
-
-                drive_service.permissions().create(fileId=file_id, body={'type': 'anyone', 'role': 'reader'}, supportsAllDrives=True).execute()
-                scooter.image_url = f"https://drive.google.com/uc?id={file_id}"
-            # --------------------------------------------------------------------
+                filename = secure_filename(f"{scooter_name}{file_ext}")
+                
+                upload_folder = os.path.join(current_app.root_path, 'static', 'uploads')
+                os.makedirs(upload_folder, exist_ok=True)
+                filepath = os.path.join(upload_folder, filename)
+                
+                # Compress and save image locally
+                img = Image.open(photo)
+                if img.mode != 'RGB' and file_ext.lower() in ['.jpg', '.jpeg']:
+                    img = img.convert('RGB')
+                img.save(filepath, optimize=True, quality=85)
+                
+                scooter.image_url = url_for('static', filename=f'uploads/{filename}')
             elif image_url:
                 scooter.image_url = image_url
                 
