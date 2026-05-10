@@ -22,6 +22,9 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
+            {% set can_manage_team = current_user.is_admin or (current_user.team_profile and current_user.team_profile.role == 'Manager') %}
+            
+            {% if can_manage_team %}
             <!-- Left Column: Forms -->
             <div class="space-y-8 lg:col-span-1">
                 
@@ -64,8 +67,14 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-bold text-gray-700">Role</label>
-                            <input type="text" name="role" value="Member" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                            <label class="block text-sm font-bold text-gray-700">Role / Post</label>
+                            <select name="role" required class="mt-1 block w-full border border-gray-300 rounded-md p-2 bg-white">
+                                <option value="Manager">Manager</option>
+                                <option value="Team Lead">Team Lead</option>
+                                <option value="Specialist">Specialist</option>
+                                <option value="Associate" selected>Associate</option>
+                                <option value="Intern">Intern</option>
+                            </select>
                         </div>
                         <button type="submit" class="w-full bg-gray-900 text-white font-bold py-2 rounded-xl hover:bg-volt-600 transition-colors">Assign to Team</button>
                     </form>
@@ -102,9 +111,10 @@
                 </div>
 
             </div>
+            {% endif %}
 
             <!-- Right Column: Lists -->
-            <div class="space-y-8 lg:col-span-2">
+            <div class="space-y-8 {% if can_manage_team %}lg:col-span-2{% else %}lg:col-span-3{% endif %}">
                 
                 <!-- Departments & Members -->
                 <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">

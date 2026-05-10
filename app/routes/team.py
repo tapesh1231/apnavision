@@ -7,17 +7,32 @@ from datetime import datetime
 
 team_bp = Blueprint('team', __name__)
 
-def admin_required(f):
+def manager_or_admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or not current_user.is_admin:
-            flash('Admin access required.', 'error')
-            return redirect(url_for('main.index'))
+        if not current_user.is_authenticated:
+            return redirect(url_for('auth.login'))
+        
+        is_manager = current_user.team_profile and current_user.team_profile.role == 'Manager'
+        if not (current_user.is_admin or is_manager):
+            flash('Admin or Manager access required.', 'error')
+            return redirect(url_for('team.dashboard'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def team_or_admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return redirect(url_for('auth.login'))
+        if not (current_user.is_admin or current_user.team_profile):
+            flash('Team access required.', 'error')
+            return redirect(url_for('main.dashboard'))
         return f(*args, **kwargs)
     return decorated_function
 
 @team_bp.route('/')
-@admin_required
+@team_or_admin_required
 def dashboard():
     departments = Department.query.all()
     team_members = TeamMember.query.all()
@@ -26,7 +41,7 @@ def dashboard():
     return render_template('team/dashboard.html', departments=departments, team_members=team_members, tasks=tasks, users=users)
 
 @team_bp.route('/department/add', methods=['POST'])
-@admin_required
+@manager_or_admin_required
 def add_department():
     name = request.form.get('name')
     description = request.form.get('description')
@@ -42,7 +57,7 @@ def add_department():
     return redirect(url_for('team.dashboard'))
 
 @team_bp.route('/member/add', methods=['POST'])
-@admin_required
+@manager_or_admin_required
 def add_member():
     name = request.form.get('name')
     email = request.form.get('email')
@@ -92,7 +107,7 @@ ApnaVision Admin Team"""
     return redirect(url_for('team.dashboard'))
 
 @team_bp.route('/task/add', methods=['POST'])
-@admin_required
+@manager_or_admin_required
 def add_task():
     title = request.form.get('title')
     description = request.form.get('description')
